@@ -6,6 +6,8 @@ requires-python = ">=3.10"
 dependencies = [
     "agents>=1.4.0",
     "automium-web>=0.1.1",
+    "fastapi>=0.136.0",
+    "flask-cors>=6.0.2",
     "langchain>=1.2.15",
     "langchain-groq>=1.1.2",
     "langchain-openai>=1.1.14",
