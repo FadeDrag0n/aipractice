@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Apple Shop Assistant</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=SF+Pro+Display:wght@300;400;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --surface: #111118;
+    --surface2: #1a1a24;
+    --border: rgba(255,255,255,0.07);
+    --accent: #6366f1;
+    --accent2: #a78bfa;
+    --text: #e8e8f0;
+    --text-muted: #6b6b80;
+    --green: #34d399;
+    --radius: 16px;
+    --chat-w: 640px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'SF Pro Display', -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    height: 100vh;
+    display: flex;
+    overflow: hidden;
+  }
+
+  /* ── Sidebar ── */
+  .sidebar {
+    width: 300px;
+    min-width: 300px;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .sidebar-header {
+    padding: 28px 24px 20px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .logo {
+    font-size: 22px;
+    font-weight: 600;
+    letter-spacing: -0.5px;
+    background: linear-gradient(135deg, #fff 0%, var(--accent2) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .logo span { font-weight: 300; }
+
+  .sidebar-section {
+    padding: 16px 24px 8px;
+    font-size: 10px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+
+  .catalog-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 0 12px 12px;
+  }
+
+  .catalog-list::-webkit-scrollbar { width: 4px; }
+  .catalog-list::-webkit-scrollbar-track { background: transparent; }
+  .catalog-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+  .product-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 12px;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background 0.15s;
+    border: 1px solid transparent;
+  }
+
+  .product-card:hover {
+    background: var(--surface2);
+    border-color: var(--border);
+  }
+
+  .product-icon {
+    width: 36px; height: 36px;
+    border-radius: 8px;
+    background: var(--surface2);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px;
+    flex-shrink: 0;
+  }
+
+  .product-info { flex: 1; min-width: 0; }
+  .product-name { font-size: 13px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .product-price { font-size: 11px; color: var(--accent2); margin-top: 2px; }
+
+  .product-add-btn {
+    width: 24px; height: 24px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--text-muted);
+    cursor: pointer;
+    font-size: 16px;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.15s;
+    flex-shrink: 0;
+  }
+
+  .product-add-btn:hover {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
+  }
+
+  /* Cart section */
+  .cart-section {
+    border-top: 1px solid var(--border);
+    padding: 16px 24px;
+    min-height: 120px;
+    max-height: 200px;
+    overflow-y: auto;
+  }
+
+  .cart-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+  }
+
+  .cart-title {
+    font-size: 10px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+
+  .cart-clear-btn {
+    font-size: 11px;
+    color: var(--text-muted);
+    background: none;
+    border: none;
+    cursor: pointer;
+    transition: color 0.15s;
+  }
+
+  .cart-clear-btn:hover { color: #ff6b6b; }
+
+  .cart-empty { font-size: 13px; color: var(--text-muted); padding: 8px 0; }
+
+  .cart-item {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    padding: 4px 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .cart-item-name { color: var(--text); flex: 1; }
+  .cart-item-total { color: var(--accent2); white-space: nowrap; margin-left: 8px; }
+
+  .cart-total {
+    margin-top: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    display: flex;
+    justify-content: space-between;
+  }
+
+  .cart-total-amount { color: var(--green); }
+
+  /* ── Main chat area ── */
+  .main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    max-width: var(--chat-w);
+    margin: 0 auto;
+    width: 100%;
+    padding: 0 24px;
+    overflow: hidden;
+  }
+
+  .chat-header {
+    padding: 28px 0 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-shrink: 0;
+  }
+
+  .chat-title { font-size: 18px; font-weight: 600; }
+  .chat-subtitle { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+
+  .status-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--green);
+    box-shadow: 0 0 6px var(--green);
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+
+  .messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 24px 0;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .messages::-webkit-scrollbar { width: 4px; }
+  .messages::-webkit-scrollbar-track { background: transparent; }
+  .messages::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+  .message {
+    display: flex;
+    gap: 12px;
+    animation: fadeUp 0.3s ease;
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .message.user { flex-direction: row-reverse; }
+
+  .avatar {
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+
+  .avatar.bot { background: linear-gradient(135deg, var(--accent), var(--accent2)); }
+  .avatar.user { background: var(--surface2); border: 1px solid var(--border); }
+
+  .bubble {
+    max-width: 80%;
+    padding: 12px 16px;
+    border-radius: 18px;
+    font-size: 14px;
+    line-height: 1.55;
+    white-space: pre-wrap;
+  }
+
+  .message.bot .bubble {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-top-left-radius: 4px;
+  }
+
+  .message.user .bubble {
+    background: var(--accent);
+    border-top-right-radius: 4px;
+  }
+
+  .typing-indicator {
+    display: flex; gap: 4px;
+    padding: 14px 16px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    border-top-left-radius: 4px;
+    width: fit-content;
+  }
+
+  .dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--text-muted);
+    animation: bounce 1.2s infinite;
+  }
+
+  .dot:nth-child(2) { animation-delay: 0.2s; }
+  .dot:nth-child(3) { animation-delay: 0.4s; }
+
+  @keyframes bounce {
+    0%, 60%, 100% { transform: translateY(0); }
+    30% { transform: translateY(-6px); background: var(--accent2); }
+  }
+
+  /* Input area */
+  .input-area {
+    padding: 16px 0 24px;
+    flex-shrink: 0;
+    border-top: 1px solid var(--border);
+  }
+
+  .quick-prompts {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+  }
+
+  .quick-btn {
+    font-size: 12px;
+    padding: 5px 12px;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.15s;
+    font-family: inherit;
+  }
+
+  .quick-btn:hover {
+    background: var(--surface2);
+    color: var(--text);
+    border-color: var(--accent);
+  }
+
+  .input-row {
+    display: flex;
+    gap: 10px;
+    align-items: flex-end;
+  }
+
+  .input-wrap {
+    flex: 1;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 4px 4px 4px 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: border-color 0.15s;
+  }
+
+  .input-wrap:focus-within {
+    border-color: var(--accent);
+  }
+
+  #msg-input {
+    flex: 1;
+    background: none;
+    border: none;
+    outline: none;
+    color: var(--text);
+    font-size: 14px;
+    font-family: inherit;
+    padding: 10px 0;
+    resize: none;
+    max-height: 120px;
+    line-height: 1.4;
+  }
+
+  #msg-input::placeholder { color: var(--text-muted); }
+
+  #send-btn {
+    width: 40px; height: 40px;
+    border-radius: 10px;
+    border: none;
+    background: var(--accent);
+    color: #fff;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.15s;
+    flex-shrink: 0;
+  }
+
+  #send-btn:hover:not(:disabled) { background: var(--accent2); transform: scale(1.05); }
+  #send-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  #send-btn svg { width: 18px; height: 18px; }
+
+  /* Reset btn */
+  .reset-btn {
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    font-size: 12px;
+    font-family: inherit;
+    padding: 6px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .reset-btn:hover { border-color: #ff6b6b; color: #ff6b6b; }
+
+  /* Scrollbar utilities */
+  .cart-section::-webkit-scrollbar { width: 3px; }
+  .cart-section::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+  /* Category badges */
+  .cat-badge {
+    font-size: 9px;
+    padding: 2px 6px;
+    border-radius: 4px;
+    background: var(--surface2);
+    color: var(--text-muted);
+    border: 1px solid var(--border);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="sidebar-header">
+    <div class="logo">Apple<span>Shop</span></div>
+    <div style="font-size:12px;color:var(--text-muted);margin-top:4px;">AI-powered assistant</div>
+  </div>
+
+  <div class="sidebar-section">Каталог</div>
+  <div class="catalog-list" id="catalog-list">
+    <div style="padding:12px;font-size:13px;color:var(--text-muted);">Завантаження…</div>
+  </div>
+
+  <div class="cart-section">
+    <div class="cart-header">
+      <div class="cart-title">🛒 Кошик</div>
+      <button class="cart-clear-btn" onclick="clearCart()">Очистити</button>
+    </div>
+    <div id="cart-body">
+      <div class="cart-empty">Кошик порожній</div>
+    </div>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<main class="main">
+  <div class="chat-header">
+    <div>
+      <div class="chat-title">AI Асистент</div>
+      <div class="chat-subtitle">Запитай про будь-який товар</div>
+    </div>
+    <div style="display:flex;align-items:center;gap:12px;">
+      <button class="reset-btn" onclick="resetChat()">↺ Новий чат</button>
+      <div class="status-dot"></div>
+    </div>
+  </div>
+
+  <div class="messages" id="messages">
+    <div class="message bot">
+      <div class="avatar bot">✦</div>
+      <div class="bubble">Привіт! Я асистент магазину Apple-техніки 🍎<br>Можу показати каталог, знайти товар або допомогти з вибором. Що вас цікавить?</div>
+    </div>
+  </div>
+
+  <div class="input-area">
+    <div class="quick-prompts">
+      <button class="quick-btn" onclick="sendQuick('Покажи каталог')">📋 Каталог</button>
+      <button class="quick-btn" onclick="sendQuick('Що є в кошику?')">🛒 Кошик</button>
+      <button class="quick-btn" onclick="sendQuick('Порекомендуй навушники')">🎧 Навушники</button>
+      <button class="quick-btn" onclick="sendQuick('Який MacBook найкращий?')">💻 MacBook</button>
+    </div>
+    <div class="input-row">
+      <div class="input-wrap">
+        <textarea id="msg-input" rows="1" placeholder="Написати повідомлення…"></textarea>
+      </div>
+      <button id="send-btn" onclick="sendMessage()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="22" y1="2" x2="11" y2="13"/>
+          <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+</main>
+
+<script>
+  const API = 'http://localhost:5000/api';
+  const icons = { 'Смартфони': '📱', 'Ноутбуки': '💻', 'Навушники': '🎧', 'Планшети': '📋', 'Годинники': '⌚' };
+
+  // ── Load catalog ────────────────────────────────────────────────────────────
+  async function loadCatalog() {
+    try {
+      const res = await fetch(`${API}/catalog`);
+      const data = await res.json();
+      const list = document.getElementById('catalog-list');
+      list.innerHTML = data.map(p => `
+        <div class="product-card" onclick="sendQuick('Розкажи про ${p.name}')">
+          <div class="product-icon">${icons[p.category] || '📦'}</div>
+          <div class="product-info">
+            <div class="product-name">${p.name}</div>
+            <div class="product-price">${p.price.toLocaleString('uk')} грн</div>
+          </div>
+          <button class="product-add-btn" title="Додати до кошика"
+            onclick="event.stopPropagation(); quickAdd('${p.id}', '${p.name}')">+</button>
+        </div>
+      `).join('');
+    } catch {
+      document.getElementById('catalog-list').innerHTML = '<div style="padding:12px;font-size:12px;color:#ff6b6b;">Сервер недоступний</div>';
+    }
+  }
+
+  // ── Load cart ───────────────────────────────────────────────────────────────
+  async function loadCart() {
+    try {
+      const res = await fetch(`${API}/cart`);
+      const data = await res.json();
+      const body = document.getElementById('cart-body');
+      if (!data.items.length) {
+        body.innerHTML = '<div class="cart-empty">Кошик порожній</div>';
+        return;
+      }
+      body.innerHTML = data.items.map(i => `
+        <div class="cart-item">
+          <span class="cart-item-name">${i.name} ×${i.qty}</span>
+          <span class="cart-item-total">${(i.qty * i.price).toLocaleString('uk')} грн</span>
+        </div>
+      `).join('') + `
+        <div class="cart-total">
+          <span>Разом</span>
+          <span class="cart-total-amount">${data.total.toLocaleString('uk')} грн</span>
+        </div>`;
+    } catch {}
+  }
+
+  async function quickAdd(id, name) {
+    await sendQuick(`Додай ${name} до кошика`);
+  }
+
+  async function clearCart() {
+    await fetch(`${API}/cart`, { method: 'DELETE' });
+    loadCart();
+    appendBot('Кошик очищено 🗑️');
+  }
+
+  // ── Chat ────────────────────────────────────────────────────────────────────
+  const messagesEl = document.getElementById('messages');
+  const inputEl = document.getElementById('msg-input');
+  const sendBtn = document.getElementById('send-btn');
+
+  inputEl.addEventListener('keydown', e => {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+  });
+
+  inputEl.addEventListener('input', () => {
+    inputEl.style.height = 'auto';
+    inputEl.style.height = Math.min(inputEl.scrollHeight, 120) + 'px';
+  });
+
+  function appendUser(text) {
+    const div = document.createElement('div');
+    div.className = 'message user';
+    div.innerHTML = `<div class="avatar user">я</div><div class="bubble">${escHtml(text)}</div>`;
+    messagesEl.appendChild(div);
+    scrollBottom();
+  }
+
+  function appendBot(text) {
+    const div = document.createElement('div');
+    div.className = 'message bot';
+    div.innerHTML = `<div class="avatar bot">✦</div><div class="bubble">${escHtml(text)}</div>`;
+    messagesEl.appendChild(div);
+    scrollBottom();
+    return div;
+  }
+
+  function showTyping() {
+    const div = document.createElement('div');
+    div.className = 'message bot';
+    div.id = 'typing';
+    div.innerHTML = `<div class="avatar bot">✦</div>
+      <div class="typing-indicator">
+        <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+      </div>`;
+    messagesEl.appendChild(div);
+    scrollBottom();
+  }
+
+  function removeTyping() {
+    const el = document.getElementById('typing');
+    if (el) el.remove();
+  }
+
+  function scrollBottom() {
+    messagesEl.scrollTop = messagesEl.scrollHeight;
+  }
+
+  function escHtml(t) {
+    return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
+  }
+
+  async function sendMessage() {
+    const text = inputEl.value.trim();
+    if (!text) return;
+    inputEl.value = '';
+    inputEl.style.height = 'auto';
+    await doSend(text);
+  }
+
+  async function sendQuick(text) {
+    await doSend(text);
+  }
+
+  async function doSend(text) {
+    appendUser(text);
+    sendBtn.disabled = true;
+    showTyping();
+    try {
+      const res = await fetch(`${API}/chat`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: text })
+      });
+      const data = await res.json();
+      removeTyping();
+      appendBot(data.reply || data.error || 'Помилка');
+      loadCart(); // refresh cart after each message
+    } catch {
+      removeTyping();
+      appendBot('Сервер недоступний');
+    } finally {
+      sendBtn.disabled = false;
+      inputEl.focus();
+    }
+  }
+
+  async function resetChat() {
+    await fetch(`${API}/chat/reset`, { method: 'POST' });
+    messagesEl.innerHTML = `
+      <div class="message bot">
+        <div class="avatar bot">✦</div>
+        <div class="bubble">Чат скинуто. Чим можу допомогти? 😊</div>
+      </div>`;
+  }
+
+  // ── Init ────────────────────────────────────────────────────────────────────
+  loadCatalog();
+  loadCart();
+</script>
+</body>
+</html>
