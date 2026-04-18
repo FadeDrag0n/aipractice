@@ -18,7 +18,7 @@ client = AsyncOpenAI(
 MODEL = "llama-3.3-70b-versatile"
 
 def get_conn():
-    return sqlite3.connect(DB_PATH)
+    return sqlite3.connect(DB_PATH) #123
 
 def init_db():
     conn = get_conn()
